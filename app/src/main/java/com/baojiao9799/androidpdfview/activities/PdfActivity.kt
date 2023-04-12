@@ -12,5 +12,6 @@ class PdfActivity : Activity() {
         binding = PdfActivityBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        binding.samplePdfView.loadPdfFromAssets("single-page-pdf.pdf")
     }
 }
