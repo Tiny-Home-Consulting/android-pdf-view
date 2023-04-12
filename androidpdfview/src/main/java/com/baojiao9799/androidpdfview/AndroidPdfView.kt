@@ -31,12 +31,12 @@ class AndroidPdfView
         )
         val pdf = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
         val renderer = PdfRenderer(pdf)
+        val page = renderer.openPage(0)
         val bitmap = Bitmap.createBitmap(
-            DisplayUtil.getPdfPageWidthInPixels(context),
-            DisplayUtil.getPdfPageHeightInPixels(context),
+            page.width,
+            page.height,
             Bitmap.Config.ARGB_8888
         )
-        val page = renderer.openPage(0)
         page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
         binding.pdfPageContainer.setImageBitmap(bitmap)
     }
