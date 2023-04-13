@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.core.content.ContextCompat.startActivity
 import java.io.*
 
-
 class FileUtil {
     companion object {
         private class DownloadException(

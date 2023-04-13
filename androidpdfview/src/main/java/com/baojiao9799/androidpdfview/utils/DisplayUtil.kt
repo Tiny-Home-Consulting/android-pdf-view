@@ -13,15 +13,19 @@ enum class PdfFitType {
 
 class DisplayUtil {
     companion object {
-        fun getPdfPageWidthInPixels(
+        fun getPdfDimensions(
             context: Context,
-            fitType: PdfFitType = PdfFitType.FILL_SCREEN_WIDTH
-        ): Int {
-            return context.resources.displayMetrics.widthPixels
-        }
+            pageWidthInPixels: Int,
+            pageHeightInPixels: Int,
+            pdfFitType: PdfFitType = PdfFitType.FILL_SCREEN_WIDTH
+        ): PdfDimensions {
+            val screenWidth = context.resources.displayMetrics.widthPixels
+            val scaledHeight = screenWidth.toFloat() * pageHeightInPixels.toFloat() / pageWidthInPixels.toFloat()
 
-        fun getPdfPageHeightInPixels(context: Context): Int {
-            return context.resources.displayMetrics.heightPixels
+            return PdfDimensions(
+                screenWidth,
+                scaledHeight.toInt()
+            )
         }
     }
 }

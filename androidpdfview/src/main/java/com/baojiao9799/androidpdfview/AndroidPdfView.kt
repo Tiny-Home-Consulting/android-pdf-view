@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.baojiao9799.androidpdfview.databinding.AndroidPdfViewBinding
 import com.baojiao9799.androidpdfview.reycleradapters.PdfAdapter
+import com.baojiao9799.androidpdfview.utils.DisplayUtil
 import com.baojiao9799.androidpdfview.utils.FileUtil
 import java.io.File
 
@@ -52,9 +53,14 @@ class AndroidPdfView
 
         for (i in 0 until pageCount) {
             val page = renderer.openPage(i)
-            val bitmap = Bitmap.createBitmap(
+            val pdfDimensions = DisplayUtil.getPdfDimensions(
+                context,
                 page.width,
-                page.height,
+                page.height
+            )
+            val bitmap = Bitmap.createBitmap(
+                pdfDimensions.widthInPixels,
+                pdfDimensions.heightInPixels,
                 Bitmap.Config.ARGB_8888
             )
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
