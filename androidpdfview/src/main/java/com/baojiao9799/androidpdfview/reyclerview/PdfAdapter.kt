@@ -1,4 +1,4 @@
-package com.baojiao9799.androidpdfview.reycleradapters
+package com.baojiao9799.androidpdfview.reyclerview
 
 import android.graphics.Bitmap
 import android.view.LayoutInflater

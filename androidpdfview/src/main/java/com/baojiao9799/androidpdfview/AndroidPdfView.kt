@@ -9,7 +9,8 @@ import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.baojiao9799.androidpdfview.databinding.AndroidPdfViewBinding
-import com.baojiao9799.androidpdfview.reycleradapters.PdfAdapter
+import com.baojiao9799.androidpdfview.reyclerview.PageSpacer
+import com.baojiao9799.androidpdfview.reyclerview.PdfAdapter
 import com.baojiao9799.androidpdfview.utils.DisplayUtil
 import com.baojiao9799.androidpdfview.utils.FileUtil
 import java.io.File
@@ -22,7 +23,35 @@ class AndroidPdfView
 ): ConstraintLayout(context, attrs, defStyleAttr) {
     private var binding: AndroidPdfViewBinding
 
+    private var paddingHorizontal = 0
+    private var paddingVertical = 0
+    private var pageSpacing = 0
+
     init {
+        context.theme.obtainStyledAttributes(
+            attrs,
+            R.styleable.AndroidPdfView,
+            defStyleAttr,
+            0
+        ).apply{
+            try {
+                paddingHorizontal = getDimensionPixelSize(
+                    R.styleable.AndroidPdfView_paddingHorizontal,
+                    0
+                )
+                paddingVertical = getDimensionPixelSize(
+                    R.styleable.AndroidPdfView_paddingVertical,
+                    0
+                )
+                pageSpacing = getDimensionPixelSize(
+                    R.styleable.AndroidPdfView_pageSpacing,
+                    0
+                )
+            } finally {
+                recycle()
+            }
+        }
+
         binding = AndroidPdfViewBinding.inflate(LayoutInflater.from(context), this, true)
 
         binding.pdfPages.layoutManager = LinearLayoutManager(
@@ -30,6 +59,17 @@ class AndroidPdfView
             LinearLayoutManager.VERTICAL,
             false
         )
+
+        binding.pdfPages.setPadding(
+            paddingHorizontal,
+            paddingVertical,
+            paddingHorizontal,
+            paddingVertical
+        )
+
+        if (pageSpacing != 0) {
+            binding.pdfPages.addItemDecoration(PageSpacer(pageSpacing))
+        }
     }
 
     fun loadPdfFromAssets(assetFileName: String) {

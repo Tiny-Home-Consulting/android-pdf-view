@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/pdf_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <com.baojiao9799.androidpdfview.AndroidPdfView
         android:id="@+id/sample_pdf_view"
+        android:background="@color/purple_200"
+        app:paddingHorizontal="16dp"
+        app:paddingVertical="16dp"
+        app:pageSpacing="16dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
