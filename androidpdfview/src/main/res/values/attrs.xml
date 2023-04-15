@@ -4,5 +4,6 @@
         <attr name="paddingHorizontal" format="dimension" />
         <attr name="paddingVertical" format="dimension" />
         <attr name="pageSpacing" format="dimension" />
+        <attr name="showScrollbar" format="boolean" />
     </declare-styleable>
 </resources>

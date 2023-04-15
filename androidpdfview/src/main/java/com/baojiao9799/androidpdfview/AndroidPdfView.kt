@@ -13,7 +13,10 @@ import com.baojiao9799.androidpdfview.reyclerview.PageSpacer
 import com.baojiao9799.androidpdfview.reyclerview.PdfAdapter
 import com.baojiao9799.androidpdfview.utils.DisplayUtil
 import com.baojiao9799.androidpdfview.utils.FileUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.io.File
+import kotlin.coroutines.CoroutineContext
 
 class AndroidPdfView
 @JvmOverloads constructor(
@@ -26,6 +29,7 @@ class AndroidPdfView
     private var paddingHorizontal = 0
     private var paddingVertical = 0
     private var pageSpacing = 0
+    private var showScrollBar = true
 
     init {
         context.theme.obtainStyledAttributes(
@@ -46,6 +50,10 @@ class AndroidPdfView
                 pageSpacing = getDimensionPixelSize(
                     R.styleable.AndroidPdfView_pageSpacing,
                     0
+                )
+                showScrollBar = getBoolean(
+                    R.styleable.AndroidPdfView_showScrollbar,
+                    true
                 )
             } finally {
                 recycle()
@@ -70,6 +78,16 @@ class AndroidPdfView
         if (pageSpacing != 0) {
             binding.pdfPages.addItemDecoration(PageSpacer(pageSpacing))
         }
+
+        if (!showScrollBar) {
+            binding.pdfPages.scrollBarSize = 0
+        }
+    }
+
+    fun loadPdfFromFile(file: File) {
+        val pdfPageList = getPdfPageList(file)
+
+        binding.pdfPages.adapter = PdfAdapter(pdfPageList)
     }
 
     fun loadPdfFromAssets(assetFileName: String) {

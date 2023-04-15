@@ -31,14 +31,14 @@ class FileUtil {
             }
         }
 
-        private fun createTempFile(context: Context, fileName: String) = try {
+        fun createTempFile(context: Context, fileName: String): File = try {
             val directory = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
             File.createTempFile("download_", fileName, directory)
         } catch (e: IOException) {
             throw DownloadException("Error while creating download file", e)
         }
 
-        private fun InputStream.copyTo(output: FileOutputStream) {
+        fun InputStream.copyTo(output: FileOutputStream) {
             val bufferSize = 4 * 1024
             val buffer = ByteArray(bufferSize)
 

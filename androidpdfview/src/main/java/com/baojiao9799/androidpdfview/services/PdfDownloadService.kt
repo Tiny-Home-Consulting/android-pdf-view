@@ -1,13 +1,33 @@
 package com.baojiao9799.androidpdfview.services
 
-import okhttp3.ResponseBody
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Streaming
-import retrofit2.http.Url
+import android.content.Context
+import com.baojiao9799.androidpdfview.utils.FileUtil
+import retrofit2.Retrofit
+import java.io.File
+import java.io.FileOutputStream
+import com.baojiao9799.androidpdfview.utils.FileUtil.Companion.copyTo
 
-interface PdfRetrofitService {
-    @Streaming
-    @GET
-    suspend fun downloadPdf(@Url url: String): Response<ResponseBody>
+interface IPdfDownloadService {
+    suspend fun downloadPdf(context: Context, url: String, fileName: String): File
+}
+
+class PdfDownloadService(): IPdfDownloadService {
+    override suspend fun downloadPdf(context: Context, url: String, fileName: String): File {
+        val file = FileUtil.createTempFile(context, fileName)
+
+        val response = buildRetrofitService().downloadPdf(url)
+
+        val inputStream = response.body()?.byteStream() ?: return file
+        inputStream.use { input -> FileOutputStream(file).use {
+            output -> input.copyTo(output)
+        }}
+
+        return file
+    }
+
+    private fun buildRetrofitService(): PdfRetrofitService {
+        val retrofit = Retrofit.Builder()
+            .build()
+        return retrofit.create(PdfRetrofitService::class.java)
+    }
 }
