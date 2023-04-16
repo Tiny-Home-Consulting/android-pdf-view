@@ -6,5 +6,6 @@
         <attr name="pageSpacing" format="dimension" />
         <attr name="showScrollbar" format="boolean" />
         <attr name="supportPinchZoom" format="boolean" />
+        <attr name="supportTapZoom" format="boolean" />
     </declare-styleable>
 </resources>
