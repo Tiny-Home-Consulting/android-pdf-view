@@ -1,11 +1,15 @@
 package com.baojiao9799.androidpdfview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.baojiao9799.androidpdfview.databinding.AndroidPdfViewBinding
@@ -13,11 +17,9 @@ import com.baojiao9799.androidpdfview.reyclerview.PageSpacer
 import com.baojiao9799.androidpdfview.reyclerview.PdfAdapter
 import com.baojiao9799.androidpdfview.utils.DisplayUtil
 import com.baojiao9799.androidpdfview.utils.FileUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import java.io.File
-import kotlin.coroutines.CoroutineContext
 
+@SuppressLint("ClickableViewAccessibility")
 class AndroidPdfView
 @JvmOverloads constructor(
     context: Context,
@@ -26,10 +28,31 @@ class AndroidPdfView
 ): ConstraintLayout(context, attrs, defStyleAttr) {
     private var binding: AndroidPdfViewBinding
 
+    // Custom attributes
     private var paddingHorizontal = 0
     private var paddingVertical = 0
     private var pageSpacing = 0
     private var showScrollBar = true
+    private var supportPinchZoom = true
+
+    private var currentScaleFactor = 1f
+
+    private val zoomListener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            currentScaleFactor *= detector.scaleFactor
+
+            // Don't let the object get too small or too large.
+            currentScaleFactor = 1f.coerceAtLeast(
+                currentScaleFactor.coerceAtMost(5.0f)
+            )
+
+            invalidate()
+            return true
+        }
+    }
+
+    private val zoomDetector = ScaleGestureDetector(context, zoomListener)
 
     init {
         context.theme.obtainStyledAttributes(
@@ -53,6 +76,10 @@ class AndroidPdfView
                 )
                 showScrollBar = getBoolean(
                     R.styleable.AndroidPdfView_showScrollbar,
+                    true
+                )
+                supportPinchZoom = getBoolean(
+                    R.styleable.AndroidPdfView_supportPinchZoom,
                     true
                 )
             } finally {
@@ -82,6 +109,22 @@ class AndroidPdfView
         if (!showScrollBar) {
             binding.pdfPages.scrollBarSize = 0
         }
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (supportPinchZoom) {
+            zoomDetector.onTouchEvent(event)
+        }
+
+        return super.dispatchTouchEvent(event)
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        canvas.save()
+        canvas.scale(currentScaleFactor, currentScaleFactor)
+        super.dispatchDraw(canvas)
+        canvas.restore()
+        invalidate()
     }
 
     fun loadPdfFromFile(file: File) {

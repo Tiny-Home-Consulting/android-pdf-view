@@ -12,6 +12,7 @@
         app:paddingVertical="16dp"
         app:pageSpacing="16dp"
         app:showScrollbar="false"
+        app:supportPinchZoom="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
