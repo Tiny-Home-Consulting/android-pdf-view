@@ -4,19 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Rect
-import android.graphics.RectF
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.MotionEvent.INVALID_POINTER_ID
 import android.view.ScaleGestureDetector
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.MotionEventCompat
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.baojiao9799.androidpdfview.databinding.AndroidPdfViewBinding
 import com.baojiao9799.androidpdfview.reyclerview.PageSpacer
@@ -46,19 +41,14 @@ class AndroidPdfView
     private val tapZoomMaxScale = 2f
 
     private var currentScaleFactor = 1f
-    // The current viewport. This rectangle represents the currently visible
-    // chart domain and range.
-    private val mCurrentViewport = RectF(
-        0f,
-        0f,
-        context.resources.displayMetrics.widthPixels.toFloat(),
-        context.resources.displayMetrics.heightPixels.toFloat()
-    )
 
-    // The current destination rectangle (in pixel coordinates) into which the
-    // chart data should be drawn.
-    private val mContentRect: Rect? = null
-
+    private var mTranslationX = 0f
+    private var mTranslationY = 0f
+    private var currentLeftX = 0f
+    private var currentRightX = context.resources.displayMetrics.widthPixels.toFloat()
+    private var currentTopY = 0f
+    private var currentBottomY = context.resources.displayMetrics.widthPixels.toFloat()
+    private val maxX get() = context.resources.displayMetrics.widthPixels.toFloat() * currentScaleFactor
 
     private val pinchZoomListener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -90,25 +80,33 @@ class AndroidPdfView
         }
 
         override fun onScroll(
-            e1: MotionEvent,
-            e2: MotionEvent,
+            downEvent: MotionEvent,
+            moveEvent: MotionEvent,
             distanceX: Float,
             distanceY: Float
         ): Boolean {
-            // Scrolling uses math based on the viewport (as opposed to math using pixels).
+            mTranslationX = moveEvent.x - downEvent.x
+            mTranslationY = moveEvent.y - downEvent.y
 
-            mContentRect?.apply {
-                // Pixel offset is the offset in screen pixels, while viewport offset is the
-                // offset within the current viewport.
-                val viewportOffsetX = distanceX * mCurrentViewport.width() / width()
-                val viewportOffsetY = -distanceY * mCurrentViewport.height() / height()
+            currentLeftX -= mTranslationX
+            currentTopY -= mTranslationY
+            currentRightX -= mTranslationX
 
+            if (currentLeftX < 0) {
+                mTranslationX += currentLeftX
+                currentLeftX = 0f
+                currentRightX = maxX
+            }
 
-                // Updates the viewport, refreshes the display.
-                setViewportBottomLeft(
-                    mCurrentViewport.left + viewportOffsetX,
-                    mCurrentViewport.bottom + viewportOffsetY
-                )
+            if (currentTopY < 0) {
+                mTranslationY += currentTopY
+                currentTopY = 0f
+            }
+
+            if (currentRightX > maxX) {
+                mTranslationX += (currentRightX - maxX)
+                currentLeftX = 0f
+                currentRightX = maxX
             }
 
             return true
@@ -194,6 +192,7 @@ class AndroidPdfView
     override fun dispatchDraw(canvas: Canvas) {
         canvas.save()
         canvas.scale(currentScaleFactor, currentScaleFactor)
+        canvas.translate(mTranslationX, mTranslationY)
         super.dispatchDraw(canvas)
         canvas.restore()
         invalidate()
@@ -244,29 +243,5 @@ class AndroidPdfView
         renderer.close()
 
         return pdfPages
-    }
-
-    /**
-     * Sets the current viewport (defined by mCurrentViewport) to the given
-     * X and Y positions. Note that the Y value represents the topmost pixel position,
-     * and thus the bottom of the mCurrentViewport rectangle.
-     */
-    private fun setViewportBottomLeft(x: Float, y: Float) {
-        /*
-         * Constrains within the scroll range. The scroll range is simply the viewport
-         * extremes (AXIS_X_MAX, etc.) minus the viewport size. For example, if the
-         * extremes were 0 and 10, and the viewport size was 2, the scroll range would
-         * be 0 to 8.
-         */
-
-        val curWidth: Float = mCurrentViewport.width()
-        val curHeight: Float = mCurrentViewport.height()
-        val newX: Float = Math.max(0f, Math.min(x, context.resources.displayMetrics.widthPixels - curWidth))
-        val newY: Float = Math.max(0f + curHeight, Math.min(y, context.resources.displayMetrics.heightPixels.toFloat()))
-
-        mCurrentViewport.set(newX, newY - curHeight, newX + curWidth, newY)
-
-        // Invalidates the View to update the display.
-        ViewCompat.postInvalidateOnAnimation(this)
     }
 }
